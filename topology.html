@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Architecture & Event Mesh - Ghera</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .topology-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .topo-layer {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+    }
+
+    .topo-layer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .topo-layer-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .topo-nodes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+    }
+
+    .topo-node {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+      transition: var(--transition-fast);
+    }
+
+    .topo-node:hover {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .topo-node-title {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .topo-node-sub {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.2rem;
+    }
+
+    /* Live Event Terminal */
+    .event-terminal {
+      background: #040711;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      height: 380px;
+      overflow-y: auto;
+      padding: 1rem;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+    }
+
+    .event-log-entry {
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      gap: 0.75rem;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time { color: var(--text-muted); min-width: 75px; }
+    .log-topic { color: var(--festive-amber); font-weight: 700; min-width: 170px; }
+    .log-msg { color: #e2e8f0; flex: 1; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar Mount -->
+  <div id="navbar-mount"></div>
+
+  <main class="container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="badge badge-cyan" style="margin-bottom: 0.25rem;">Real-Time Mesh Visualizer</span>
+        <h2 style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 900; color: #fff;">
+          System Architecture Topology & Event Mesh
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.88rem;">
+          End-to-end distributed topology with Node.js Central Gateway (:4000), FastAPI AI Agent Engine (:8000) and Kafka Event Bus.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-secondary btn-sm" onclick="injectTestEvent()">
+          <span>⚡ Inject Test Kafka Event</span>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="refreshTopologyData()">
+          <span>🔄 Refresh Mesh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Architectural Layers Visualization -->
+    <div class="topology-container">
+      
+      <!-- Layer 1: Client Application Frontends -->
+      <div class="topo-layer">
+        <div class="topo-layer-header">
+          <span class="topo-layer-title">Layer 1: Decoupled Multi-Portal Client Applications</span>
+          <span class="badge badge-emerald">4 Active Portals</span>
+        </div>
+        <div class="topo-nodes-grid">
+          <div class="topo-node">
+            <div class="topo-node-title">🛍️ Customer Storefront</div>
+            <div class="topo-node-sub">10-Min Flash Drop, Look Builder, Live Tracker</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">🛵 Rider Partner App</div>
+            <div class="topo-node-sub">GPS Telemetry, Dispatch Runner, Handover OTP</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">🏬 Dark Store Console</div>
+            <div class="topo-node-sub">&lt;90s SLA Picker, Tamper Seal, Inventory Mutex</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">🛡️ Admin HQ Terminal</div>
+            <div class="topo-node-sub">Order Overrides, Dynamic Surge, Scoped API Keys</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer 2: API Gateway & Traffic Ingestion -->
+      <div class="topo-layer">
+        <div class="topo-layer-header">
+          <span class="topo-layer-title">Layer 2: Edge Gateway, Middlewares & Rate Limiting (:4000)</span>
+          <span class="badge badge-gold">Express Gateway Online</span>
+        </div>
+        <div class="topo-nodes-grid">
+          <div class="topo-node">
+            <div class="topo-node-title">🌐 Central API Gateway</div>
+            <div class="topo-node-sub">CDN Cache Headers, CORS, Rate Limiting</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">🔑 Scoped API Key Validator</div>
+            <div class="topo-node-sub">Decoupled client token validation</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">📡 Real-Time WebSocket Mesh</div>
+            <div class="topo-node-sub">Full duplex broadcast to all clients</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer 3: Antigravity AI Engine & Agent Core -->
+      <div class="topo-layer" style="border-color: rgba(168, 85, 247, 0.4);">
+        <div class="topo-layer-header">
+          <span class="topo-layer-title" style="color: #c084fc;">Layer 3: FastAPI Antigravity AI Agent Engine (:8000)</span>
+          <span class="badge badge-purple">4 Autonomous Agents</span>
+        </div>
+        <div class="topo-nodes-grid">
+          <div class="topo-node">
+            <div class="topo-node-title" style="color: #c084fc;">🛵 Fleet Dispatcher Agent</div>
+            <div class="topo-node-sub">Haversine Multi-Criteria Rerouting (Battery, Fragility)</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title" style="color: #c084fc;">⚡ Surge Optimizer Agent</div>
+            <div class="topo-node-sub">Algorithmic Moving-Average Festive Surge Dampener</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title" style="color: #c084fc;">🏬 Warehouse Routing Agent</div>
+            <div class="topo-node-sub">Pod-Weight Ergonomic Sequencing (&lt;90s SLA)</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title" style="color: #c084fc;">🔗 State Integrity Agent</div>
+            <div class="topo-node-sub">SHA-256 Cryptographic Chain Ledger & Signer</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer 4: Storage, Databases & Kafka Mesh -->
+      <div class="topo-layer">
+        <div class="topo-layer-header">
+          <span class="topo-layer-title">Layer 4: Distributed Storage, Cache & Event Bus</span>
+          <span class="badge badge-cyan">Zero Data Loss</span>
+        </div>
+        <div class="topo-nodes-grid">
+          <div class="topo-node">
+            <div class="topo-node-title">📨 Kafka Event Bus</div>
+            <div class="topo-node-sub">Decoupled pub-sub with replay logs</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">🐘 PostgreSQL Ledger</div>
+            <div class="topo-node-sub">Orders, users, riders & immutable state</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">⚡ Redis Store & Redlock</div>
+            <div class="topo-node-sub">Distributed mutex locks & flash cache</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">🔍 Elasticsearch Index</div>
+            <div class="topo-node-sub">Full-text Garba mirrorwork search</div>
+          </div>
+          <div class="topo-node">
+            <div class="topo-node-title">📦 S3 Object Store</div>
+            <div class="topo-node-sub">PDF Invoices & tamper delivery proofs</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Kafka Event Stream Viewer -->
+    <section class="glass-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: #fff;">
+            Live Kafka Event Stream (WebSocket Mesh)
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-secondary);">
+            Real-time messages emitted by Node.js microservices and FastAPI AI Agents.
+          </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <label style="font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+            <input type="checkbox" id="autoscroll-toggle" checked style="accent-color: var(--festive-gold)"> Auto-Scroll
+          </label>
+          <button class="btn btn-secondary btn-sm" onclick="clearEventLogs()">Clear Logs</button>
+        </div>
+      </div>
+
+      <div class="event-terminal" id="event-terminal">
+        <div class="event-log-entry">
+          <span class="log-time">[Init]</span>
+          <span class="log-topic">system.mesh.connected</span>
+          <span class="log-msg">Listening on ws://localhost:4000 (Central Event Mesh Online)</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/common.js"></script>
+  <script src="js/topology.js"></script>
+</body>
+</html>

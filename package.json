@@ -1,0 +1,21 @@
+{
+  "name": "quick-commerce-system",
+  "version": "1.0.0",
+  "description": "Full-scale Quick Commerce Ecosystem based on Distributed Microservices Architecture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run fastapi\" \"npm run server\"",
+    "fastapi": "python -m uvicorn backend.app.main:app --port 8000 --host 0.0.0.0",
+    "server": "node server/index.js",
+    "start:all": "concurrently \"npm run fastapi\" \"npm run server\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

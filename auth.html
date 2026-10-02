@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Portal & RBAC Access Matrix - Ghera</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .auth-hero {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(13, 19, 34, 0.95) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .persona-selection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .persona-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .persona-card:hover, .persona-card.active {
+      transform: translateY(-4px);
+      border-color: var(--festive-gold);
+      box-shadow: 0 12px 28px rgba(245, 158, 11, 0.2);
+      background: rgba(245, 158, 11, 0.06);
+    }
+
+    .persona-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .persona-card-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+
+    /* RBAC Matrix Table */
+    .rbac-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      text-align: left;
+    }
+
+    .rbac-table th, .rbac-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .rbac-table th {
+      color: var(--text-muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar Mount -->
+  <div id="navbar-mount"></div>
+
+  <main class="container">
+
+    <!-- Auth Hero -->
+    <div class="auth-hero">
+      <span class="badge badge-gold" style="margin-bottom: 0.5rem;">Role-Based Access Control</span>
+      <h1 style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 900; color: #fff; margin-bottom: 0.5rem;">
+        Unified Authentication & RBAC Policy Matrix
+      </h1>
+      <p style="color: var(--text-secondary); max-width: 650px; margin: 0 auto; font-size: 0.95rem;">
+        Select from 4 built-in system personas to simulate customer checkout, courier GPS updates, warehouse pick routes, and administrative state overrides.
+      </p>
+    </div>
+
+    <!-- 4 System Personas Grid -->
+    <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 1rem;">
+      Select Active Persona
+    </h2>
+
+    <div class="persona-selection-grid" id="personas-grid">
+      <!-- Persona 1: Customer -->
+      <div class="persona-card" onclick="activatePersona('CUSTOMER')">
+        <div class="persona-card-header">
+          <div class="persona-card-avatar">👩🏽</div>
+          <div>
+            <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">Priya Patel</div>
+            <span class="badge badge-gold">CUSTOMER</span>
+          </div>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem; flex: 1;">
+          Ahmedabad customer ordering 10-minute Navratri flash wear, customizing outfits, and tracking courier dispatches.
+        </p>
+        <button class="btn btn-secondary btn-sm" style="width: 100%;">
+          <span>Launch Storefront ➔</span>
+        </button>
+      </div>
+
+      <!-- Persona 2: Rider -->
+      <div class="persona-card" onclick="activatePersona('RIDER')">
+        <div class="persona-card-header">
+          <div class="persona-card-avatar">🛵</div>
+          <div>
+            <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">Vikram Singh</div>
+            <span class="badge badge-cyan">RIDER</span>
+          </div>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem; flex: 1;">
+          EV fleet courier partner (KA 01 EK 4921) picking up sealed bags from hub and completing handovers with OTP.
+        </p>
+        <button class="btn btn-secondary btn-sm" style="width: 100%;">
+          <span>Launch Rider App ➔</span>
+        </button>
+      </div>
+
+      <!-- Persona 3: Dark Store -->
+      <div class="persona-card" onclick="activatePersona('DARK_STORE')">
+        <div class="persona-card-header">
+          <div class="persona-card-avatar">🏬</div>
+          <div>
+            <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">Rahul Joshi</div>
+            <span class="badge badge-purple">DARK_STORE</span>
+          </div>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem; flex: 1;">
+          Lead picker at Station #H-02 executing &lt;90s SLA ergonomic routes and sealing tamper-evident delivery bags.
+        </p>
+        <button class="btn btn-secondary btn-sm" style="width: 100%;">
+          <span>Launch Dark Store ➔</span>
+        </button>
+      </div>
+
+      <!-- Persona 4: Admin -->
+      <div class="persona-card" onclick="activatePersona('ADMIN')">
+        <div class="persona-card-header">
+          <div class="persona-card-avatar">🛡️</div>
+          <div>
+            <div style="font-weight: 800; color: #fff; font-size: 1.05rem;">Vikrant Sharma</div>
+            <span class="badge badge-rose">ADMIN</span>
+          </div>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem; flex: 1;">
+          Chief Operations Director with full governance, manual state overrides, surge multipliers, and API keys.
+        </p>
+        <button class="btn btn-primary btn-sm" style="width: 100%;">
+          <span>Launch Command HQ ➔</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RBAC Policy Matrix Table -->
+    <section class="glass-card" style="margin-bottom: 3rem;">
+      <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+        Role-Based Access Control (RBAC) Permission Matrix
+      </h3>
+      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+        Detailed privilege mapping enforced by the Central Node.js API Gateway and FastAPI cryptographic state machine.
+      </p>
+
+      <div style="overflow-x: auto;">
+        <table class="rbac-table">
+          <thead>
+            <tr>
+              <th>System Capability / Operation</th>
+              <th>Customer</th>
+              <th>Rider Partner</th>
+              <th>Dark Store Staff</th>
+              <th>Admin HQ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 700; color: #fff;">Browse Catalog & Look Builder</td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: #fff;">Place Order & Sign Genesis Block</td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: #fff;">Execute &lt;90s Pick Route & Seal Bag</td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: #fff;">Broadcast GPS Telemetry & Handover OTP</td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: #fff;">Manual Order Override & Surge Tuning</td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: #fff;">Issue & Revoke Client API Keys</td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-rose">DENIED</span></td>
+              <td><span class="badge badge-emerald">ALLOWED</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Token Inspector & Direct Credentials Login -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+      <!-- Active Token Inspector -->
+      <div class="glass-card">
+        <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+          Active Bearer Token Inspector
+        </h3>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Current session credential stored in local storage and attached to API requests:
+        </p>
+        <div style="background: rgba(0,0,0,0.4); padding: 0.85rem; border-radius: var(--radius-sm); font-family: monospace; font-size: 0.78rem; color: var(--festive-amber); word-break: break-all; margin-bottom: 1rem;" id="active-token-string">
+          jwt_customer_1727854021981_x79fa2
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="token-claims-summary">
+          Subject: Priya Patel • Role: CUSTOMER • Clearance: Standard
+        </div>
+      </div>
+
+      <!-- Manual Credential Login -->
+      <div class="glass-card">
+        <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+          Manual Credential Login
+        </h3>
+        <div class="form-group">
+          <label class="form-label">Email Address:</label>
+          <input type="email" id="login-email-input" class="form-input" placeholder="priya.patel@gmail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role Target:</label>
+          <select id="login-role-select" class="form-select">
+            <option value="CUSTOMER">CUSTOMER</option>
+            <option value="RIDER">RIDER</option>
+            <option value="DARK_STORE">DARK_STORE</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" onclick="manualLoginSubmit()">
+          <span>Authenticate & Save Token</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/common.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

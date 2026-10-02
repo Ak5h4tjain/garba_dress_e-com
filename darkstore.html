@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Store Warehouse Console - Ghera</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .hub-header {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(13, 19, 34, 0.95) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .warehouse-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 992px) {
+      .warehouse-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pick-step-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.75rem;
+      transition: var(--transition-fast);
+    }
+
+    .pick-step-card.picked {
+      border-color: var(--festive-emerald);
+      background: rgba(16, 185, 129, 0.08);
+      text-decoration: line-through;
+      opacity: 0.75;
+    }
+
+    .aisle-tag {
+      background: rgba(168, 85, 247, 0.18);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+      font-weight: 800;
+      font-size: 0.78rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .bin-tag {
+      background: rgba(245, 158, 11, 0.18);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-weight: 800;
+      font-size: 0.78rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar Mount -->
+  <div id="navbar-mount"></div>
+
+  <main class="container">
+
+    <!-- Warehouse Hub Overview -->
+    <div class="hub-header">
+      <div style="display: flex; align-items: center; gap: 1.25rem;">
+        <div style="width: 58px; height: 58px; border-radius: var(--radius-md); background: linear-gradient(135deg, #a855f7, #6366f1); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+          🏬
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem">
+            <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #fff;">
+              AMD-01 Navrangpura Hub
+            </h2>
+            <span class="badge badge-purple">Warehouse Station #H-02</span>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.15rem;">
+            Lead Picker: Rahul Joshi • Active Queues: 3 • Capacity: 84% • Navrangpura Central Dark Store
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="text-align: right">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">PICKING SLA TARGET</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: #34d399;">&lt; 90 Seconds</div>
+        </div>
+        <select id="hub-store-select" class="form-select" onchange="switchStoreHub(this.value)">
+          <option value="store_ahm_01">AMD-01 Navrangpura</option>
+          <option value="store_blr_01">BLR-01 Indiranagar</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Dual Column: Picking & Packing Station + Warehouse Routing Agent -->
+    <div class="warehouse-grid">
+      
+      <!-- Left: Antigravity Warehouse Routing Agent -->
+      <section class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div>
+            <span class="badge badge-purple" style="margin-bottom: 0.25rem">FastAPI Agentic Optimization</span>
+            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: #fff;">
+              Antigravity Warehouse Pick Route
+            </h3>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="optimizeCurrentPickRoute()">
+            <span>⚡ Re-Optimize Route</span>
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 1rem; background: rgba(0,0,0,0.3); padding: 0.85rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">TOTAL STOPS</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: #fff;" id="route-stops-val">3 Aisle Bins</div>
+          </div>
+          <div style="border-left: 1px solid var(--border-subtle); padding-left: 1rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">EST. PICK TIME</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--festive-amber);" id="route-time-val">52 Seconds</div>
+          </div>
+          <div style="border-left: 1px solid var(--border-subtle); padding-left: 1rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">90s SLA RESULT</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: #34d399;" id="route-sla-val">✓ Passed</div>
+          </div>
+        </div>
+
+        <div id="pick-route-steps">
+          <!-- Injected dynamically -->
+          <div class="pick-step-card" onclick="togglePickStep(this)">
+            <span class="aisle-tag">AISLE 03</span>
+            <span class="bin-tag">BIN B-12</span>
+            <div style="flex: 1">
+              <div style="font-weight: 700; color: #fff; font-size: 0.88rem;">Royal Kutchhi Gamthi Choli (Qty: 1)</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Heavy Khadi Cotton • Est: 24s</div>
+            </div>
+            <button class="btn btn-secondary btn-sm">Check</button>
+          </div>
+          <div class="pick-step-card" onclick="togglePickStep(this)">
+            <span class="aisle-tag">AISLE 04</span>
+            <span class="bin-tag">BIN D-08</span>
+            <div style="flex: 1">
+              <div style="font-weight: 700; color: #fff; font-size: 0.88rem;">Handcrafted Wooden Dandiya (Qty: 2)</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Acoustic Brass Bells • Est: 16s</div>
+            </div>
+            <button class="btn btn-secondary btn-sm">Check</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Packing & Tamper Seal Station -->
+      <section class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div>
+            <span class="badge badge-rose" style="margin-bottom: 0.25rem">Fulfillment Console</span>
+            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: #fff;">
+              Packing & Tamper Bag Station
+            </h3>
+          </div>
+          <span class="badge badge-emerald" id="darkstore-order-status">PAID</span>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
+          <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;">CURRENT PACK QUEUE ORDER</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-top: 0.2rem;" id="queue-order-title">
+            Order #ORD-1092 • Priya Patel
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.25rem;">
+            Destination: Flat 402, Shivam Residency, Navrangpura
+          </div>
+
+          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--festive-cyan);">SECURITY BAG SEAL CODE:</div>
+            <div style="font-size: 1.4rem; font-weight: 900; color: var(--festive-gold); font-family: monospace; letter-spacing: 0.1em; margin-top: 0.2rem;" id="tamper-seal-display">
+              BAG-TAMPER-778
+            </div>
+          </div>
+        </div>
+
+        <!-- Packing Actions -->
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <button class="btn btn-secondary" onclick="advanceDarkStoreState('PICKING')">
+            <span>🏷️ Mark Status as PICKING</span>
+          </button>
+          <button class="btn btn-primary" onclick="advanceDarkStoreState('PACKED')">
+            <span>📦 Seal Bag & Mark PACKED</span>
+          </button>
+          <button class="btn btn-gold" onclick="requestAntigravityFleetDispatch()">
+            <span>🛵 Trigger Antigravity Fleet Dispatcher</span>
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Live Hub Inventory Manager -->
+    <section class="glass-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #fff;">
+            Dark Store Real-Time Inventory Control & Mutex
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-secondary);">
+            Stock levels synchronized with Redis Redlock distributed locking to prevent overselling during Garba rush.
+          </p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="testRedisRedlock()">
+          <span>🔒 Test Redlock Mutex</span>
+        </button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
+              <th style="padding: 0.75rem;">SKU / Product</th>
+              <th style="padding: 0.75rem;">Aisle / Bin</th>
+              <th style="padding: 0.75rem;">Unit Type</th>
+              <th style="padding: 0.75rem;">Current Stock</th>
+              <th style="padding: 0.75rem; text-align: right;">Quick Adjust</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-table-body">
+            <!-- Injected dynamically -->
+            <tr>
+              <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                Loading hub inventory...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/common.js"></script>
+  <script src="js/darkstore.js"></script>
+</body>
+</html>

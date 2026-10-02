@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'GarbaCholi.Express - Production Multi-App AWS Infrastructure with S3, CloudFront, ECS Fargate, and MSK'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: production
+    AllowedValues: [production, staging, development]
+  DomainName:
+    Type: String
+    Default: garbacholi.express
+
+Resources:
+  # ==============================================================
+  # 1. CUSTOMER STOREFRONT S3 + CLOUDFRONT
+  # ==============================================================
+  CustomerAppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'shop.${DomainName}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  CustomerOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: CustomerOAC
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  CustomerDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: 'GarbaCholi Customer Storefront CDN'
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3CustomerOrigin
+            DomainName: !GetAtt CustomerAppBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CustomerOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3CustomerOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+
+  # ==============================================================
+  # 2. DELIVERY RIDER PARTNER S3 + CLOUDFRONT
+  # ==============================================================
+  RiderAppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'rider.${DomainName}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  RiderDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: 'GarbaCholi Rider Partner Fleet Portal'
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3RiderOrigin
+            DomainName: !GetAtt RiderAppBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CustomerOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3RiderOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+
+  # ==============================================================
+  # 3. DARK STORE WAREHOUSE S3 + CLOUDFRONT + WAF
+  # ==============================================================
+  DarkStoreAppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'warehouse.${DomainName}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  DarkStoreDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: 'GarbaCholi Dark Store Warehouse Operations'
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3DarkStoreOrigin
+            DomainName: !GetAtt DarkStoreAppBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CustomerOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3DarkStoreOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+
+  # ==============================================================
+  # 4. ADMIN COMMAND CENTER S3 + CLOUDFRONT + SSO
+  # ==============================================================
+  AdminAppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'admin.${DomainName}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  AdminDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: 'GarbaCholi Enterprise Admin & Fleet Command Center'
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3AdminOrigin
+            DomainName: !GetAtt AdminAppBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CustomerOriginAccessControl.Id
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3AdminOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+
+  # ==============================================================
+  # 5. BACKEND ECS CLUSTER & APPLICATION LOAD BALANCER
+  # ==============================================================
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub 'garbacholi-${EnvironmentName}-cluster'
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+
+Outputs:
+  CustomerUrl:
+    Description: 'Customer E-Commerce Web Storefront'
+    Value: !GetAtt CustomerDistribution.DomainName
+  RiderUrl:
+    Description: 'Delivery Partner Fleet Portal'
+    Value: !GetAtt RiderDistribution.DomainName
+  DarkStoreUrl:
+    Description: 'Dark Store Fulfillment Warehouse Portal'
+    Value: !GetAtt DarkStoreDistribution.DomainName
+  AdminUrl:
+    Description: 'Admin Command Center Portal'
+    Value: !GetAtt AdminDistribution.DomainName

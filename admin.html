@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin HQ & Command Center - Ghera</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .admin-stat-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .health-badge-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-tab-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .admin-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .admin-tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .admin-tab-btn.active {
+      color: var(--festive-amber);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar Mount -->
+  <div id="navbar-mount"></div>
+
+  <main class="container" id="admin-main-container">
+
+    <!-- 403 Forbidden Gate Card (Rendered if user is not ADMIN) -->
+    <div id="admin-access-gate" class="access-gate-card" style="display: none;">
+      <div class="access-gate-icon">🛡️</div>
+      <h3>403 Forbidden - Role Escalation Prevented</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        You are currently authenticated as <strong id="gate-current-role" style="color: #fff">CUSTOMER</strong>. 
+        Administrative operations require elevated clearance credentials.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 1rem;">
+        <button class="btn btn-primary" onclick="elevateToAdmin()">
+          <span>🔑 Elevate to Admin (Vikrant Sharma)</span>
+        </button>
+        <a href="index.html" class="btn btn-secondary">
+          <span>Return to Storefront</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Authorized Admin Terminal (Displayed for ADMIN role) -->
+    <div id="admin-terminal-content">
+      
+      <!-- Command Center Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="badge badge-rose" style="margin-bottom: 0.25rem;">Executive HQ</span>
+          <h2 style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 900; color: #fff;">
+            Command Center & Real-Time Ops Terminal
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.88rem;">
+            Full operational governance over distributed microservices, pricing algorithms, fleet dispatch, and catalog.
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-primary btn-sm" onclick="openNewProductModal()">
+            <span>➕ Add Catalog Item</span>
+          </button>
+          <button class="btn btn-gold btn-sm" onclick="openNewApiKeyModal()">
+            <span>🔑 Issue API Key</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="admin-stat-strip">
+        <div class="glass-card" style="padding: 1.25rem;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Active Orders</div>
+          <div style="font-size: 1.75rem; font-weight: 900; color: #fff;" id="metric-orders-count">8</div>
+          <div style="font-size: 0.75rem; color: var(--festive-emerald); font-weight: 700;">100% On-Time Dispatches</div>
+        </div>
+        <div class="glass-card" style="padding: 1.25rem;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Dynamic Surge</div>
+          <div style="font-size: 1.75rem; font-weight: 900; color: var(--festive-amber);" id="metric-surge-val">1.0x</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary);">Algorithm Moving Average</div>
+        </div>
+        <div class="glass-card" style="padding: 1.25rem;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Mesh Clients</div>
+          <div style="font-size: 1.75rem; font-weight: 900; color: var(--festive-cyan);" id="metric-clients-count">4</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary);">Kafka WebSocket Bridge</div>
+        </div>
+        <div class="glass-card" style="padding: 1.25rem;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">FastAPI Agents</div>
+          <div style="font-size: 1.75rem; font-weight: 900; color: var(--festive-purple);">4 Active</div>
+          <div style="font-size: 0.75rem; color: #34d399;">SHA-256 Ledger Minting</div>
+        </div>
+      </div>
+
+      <!-- Microservices Health Matrix -->
+      <h4 style="font-size: 0.82rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+        Distributed Microservices Topology Status
+      </h4>
+      <div class="health-grid" id="services-health-grid">
+        <div class="health-badge-card"><span>Catalog API</span><span class="badge badge-emerald">HEALTHY</span></div>
+        <div class="health-badge-card"><span>Inventory Redlock</span><span class="badge badge-emerald">HEALTHY</span></div>
+        <div class="health-badge-card"><span>Pricing Engine</span><span class="badge badge-emerald">HEALTHY</span></div>
+        <div class="health-badge-card"><span>Fleet Dispatcher</span><span class="badge badge-emerald">HEALTHY</span></div>
+        <div class="health-badge-card"><span>Kafka Event Bus</span><span class="badge badge-emerald">HEALTHY</span></div>
+        <div class="health-badge-card"><span>State Integrity Agent</span><span class="badge badge-emerald">HEALTHY</span></div>
+      </div>
+
+      <!-- Admin Tabs Navigation -->
+      <div class="admin-tab-nav">
+        <button class="admin-tab-btn active" onclick="switchAdminTab('orders', this)">Live Order Overrides</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('surge', this)">Dynamic Surge Controller</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('catalog', this)">Catalog Management</button>
+        <button class="admin-tab-btn" onclick="switchAdminTab('keys', this)">API Keys & Scopes</button>
+      </div>
+
+      <!-- Tab 1: Live Order Overrides -->
+      <div id="tab-content-orders" class="admin-tab-pane">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #fff;">
+              Live Orders & State Override Console
+            </h3>
+            <button class="btn btn-secondary btn-sm" onclick="loadAdminOrders()">
+              <span>🔄 Refresh Orders</span>
+            </button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
+                  <th style="padding: 0.75rem;">Order ID</th>
+                  <th style="padding: 0.75rem;">Customer</th>
+                  <th style="padding: 0.75rem;">Total</th>
+                  <th style="padding: 0.75rem;">Status</th>
+                  <th style="padding: 0.75rem;">ETA</th>
+                  <th style="padding: 0.75rem; text-align: right;">Manual State Override</th>
+                </tr>
+              </thead>
+              <tbody id="admin-orders-table">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Dynamic Surge Pricing Controller -->
+      <div id="tab-content-surge" class="admin-tab-pane" style="display: none;">
+        <div class="glass-card" style="max-width: 680px;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+            Dynamic Festive Surge Multiplier
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Adjust the global Navratri surge pricing multiplier. Real-time updates propagate across all storefronts instantly via Kafka Event Bus.
+          </p>
+
+          <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <input 
+              type="range" 
+              id="surge-range-slider" 
+              min="1.0" 
+              max="2.5" 
+              step="0.05" 
+              value="1.0" 
+              style="flex: 1; accent-color: var(--festive-gold);" 
+              oninput="document.getElementById('surge-preview-val').innerText = this.value + 'x'"
+            >
+            <div style="font-size: 1.8rem; font-weight: 900; color: var(--festive-amber); min-width: 80px;" id="surge-preview-val">
+              1.0x
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="setPresetSurge(1.0)">1.0x (Normal Demand)</button>
+            <button class="btn btn-secondary btn-sm" onclick="setPresetSurge(1.25)">1.25x (Busy Navratri Evening)</button>
+            <button class="btn btn-secondary btn-sm" onclick="setPresetSurge(1.5)">1.5x (Rain / Peak Rush)</button>
+            <button class="btn btn-secondary btn-sm" onclick="setPresetSurge(2.0)">2.0x (Midnight Raas Surge)</button>
+          </div>
+
+          <button class="btn btn-primary" onclick="broadcastSurgeMultiplier()">
+            <span>⚡ Apply & Broadcast Surge via Kafka</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 3: Catalog Management -->
+      <div id="tab-content-catalog" class="admin-tab-pane" style="display: none;">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #fff;">
+              Product Catalog Inventory (Elasticsearch Index)
+            </h3>
+            <button class="btn btn-primary btn-sm" onclick="openNewProductModal()">
+              <span>➕ New Product</span>
+            </button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
+                  <th style="padding: 0.75rem;">Name</th>
+                  <th style="padding: 0.75rem;">Category</th>
+                  <th style="padding: 0.75rem;">Buy Price</th>
+                  <th style="padding: 0.75rem;">Rental Price</th>
+                  <th style="padding: 0.75rem; text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-catalog-table">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: API Keys Management -->
+      <div id="tab-content-keys" class="admin-tab-pane" style="display: none;">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #fff;">
+                Decoupled API Key & RBAC Management
+              </h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                Issue and revoke scoped API keys for decoupled client apps (Rider, Dark Store, Third-party partners).
+              </p>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="openNewApiKeyModal()">
+              <span>🔑 Generate Key</span>
+            </button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
+                  <th style="padding: 0.75rem;">Client Name</th>
+                  <th style="padding: 0.75rem;">Client Type</th>
+                  <th style="padding: 0.75rem;">API Key</th>
+                  <th style="padding: 0.75rem;">Scopes</th>
+                  <th style="padding: 0.75rem;">Status</th>
+                  <th style="padding: 0.75rem; text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-keys-table">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Create Product Modal -->
+  <div id="new-product-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Navratri Designer Wear</h3>
+        <button class="modal-close" onclick="closeNewProductModal()">×</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Name:</label>
+        <input type="text" id="prod-name-input" class="form-input" placeholder="e.g. Royal Patola Silk Chaniya Choli">
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Category:</label>
+          <select id="prod-cat-select" class="form-select">
+            <option value="Chaniya Choli">Chaniya Choli</option>
+            <option value="Dandiya">Dandiya Sticks</option>
+            <option value="Jewelry">Traditional Jewelry</option>
+            <option value="Mens">Kediyu & Men's</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Flare / Gher:</label>
+          <input type="text" id="prod-flare-input" class="form-input" placeholder="e.g. 11 Meter Flare">
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Buy Price (₹):</label>
+          <input type="number" id="prod-price-input" class="form-input" placeholder="3499">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rental Price / Day (₹):</label>
+          <input type="number" id="prod-rent-input" class="form-input" placeholder="849">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Image URL:</label>
+        <input type="text" id="prod-img-input" class="form-input" value="/garba_black_mirror.jpg">
+      </div>
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" style="flex: 1" onclick="closeNewProductModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex: 1" onclick="createProductSubmit()">Save to Catalog</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create API Key Modal -->
+  <div id="new-apikey-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Generate Client API Key</h3>
+        <button class="modal-close" onclick="closeNewApiKeyModal()">×</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Application Name:</label>
+        <input type="text" id="key-name-input" class="form-input" placeholder="e.g. Ahmedabad Fleet Partner App">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Client Type:</label>
+        <select id="key-type-select" class="form-select">
+          <option value="RIDER">RIDER Partner</option>
+          <option value="DARK_STORE">DARK_STORE Station</option>
+          <option value="EXTERNAL_INTEGRATION">External Logistics Integration</option>
+          <option value="ADMIN">ADMIN Automation Tool</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" style="flex: 1" onclick="closeNewApiKeyModal()">Cancel</button>
+        <button class="btn btn-gold" style="flex: 1" onclick="generateApiKeySubmit()">Generate Secret Key</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
